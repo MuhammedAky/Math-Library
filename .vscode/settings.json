@@ -1,0 +1,8 @@
+{
+    "files.associations": {
+        "stdlib.h": "c",
+        "cmathematics.h": "c",
+        "vec.h": "c",
+        "matrix.h": "c"
+    }
+}

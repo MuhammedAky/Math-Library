@@ -1,4 +1,4 @@
-#include "vec.h"
+#include "./vec.h"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -6,12 +6,11 @@
 const vec VEC_UNDEFINED = {0, NULL}; // undefined vector (no dimension)
 
 /**
- * allocate memory for a vector
+ * allocateVec memory for a vector
  * @param dim the dimension of the vector
  * @return the vector
  */
-vec allocate(unsigned int dim)
-{
+vec allocateVec(unsigned int dim){
     vec ret;
 
     ret.dim = dim;
@@ -28,7 +27,7 @@ vec allocate(unsigned int dim)
  */
 vec constructDefaultVector(unsigned int dim, float val)
 {
-    vec ret = allocate(dim);
+    vec ret = allocateVec(dim);
 
     for (unsigned int i = 0; i < dim; i++)
     {
@@ -56,7 +55,7 @@ vec constructEmptyVector(unsigned int dim)
  */
 vec newVector(unsigned int dim, ...)
 {
-    vec ret = allocate(dim);
+    vec ret = allocateVec(dim);
 
     va_list list;
     va_start(list, dim);
@@ -76,7 +75,7 @@ vec newVector(unsigned int dim, ...)
  * @param v the vector to be copied
  * @return the copy (the parameter to the function)
  */
-vec copy(vec v)
+vec copyVec(vec v)
 {
     return v;
 }
@@ -86,7 +85,7 @@ vec copy(vec v)
  * @param v the pointer to the vector to be copied
  * @return the copy
  */
-vec copyPtr(vec *v)
+vec copyVecPtr(vec *v)
 {
     vec ret;
     memcpy(&ret, v, sizeof(vec));
@@ -97,7 +96,7 @@ vec copyPtr(vec *v)
  * prints the values of a vector
  * @param v the vector
  */
-void print(vec v)
+void printVec(vec v)
 {
     printf("[ ");
 
@@ -124,7 +123,7 @@ void print(vec v)
  * @param v2 the second vector
  * @return true if the vectors have same dimension and equal corresponding values
  */
-bool equals(vec v1, vec v2)
+bool vecEquals(vec v1, vec v2)
 {
     if (v1.dim == v2.dim)
     {
@@ -148,9 +147,9 @@ bool equals(vec v1, vec v2)
  * @param k the scalar
  * @return the resultant sum
  */
-vec scalarAddition(vec v, float k)
+vec vecScalarAddition(vec v, float k)
 {
-    vec ret = allocate(v.dim);
+    vec ret = allocateVec(v.dim);
 
     for (unsigned int i = 0; i < ret.dim; i++)
     {
@@ -165,7 +164,7 @@ vec scalarAddition(vec v, float k)
  * @param v the pointer to the vector
  * @param k the scalar
  */
-void scalarAdditionTo(vec *v, float k)
+void vecScalarAdditionTo(vec *v, float k)
 {
     for (unsigned int i = 0; i < v->dim; i++)
     {
@@ -179,9 +178,9 @@ void scalarAdditionTo(vec *v, float k)
  * @param k the scalar
  * @return the resultant sum
  */
-vec scalarSubtraction(vec v, float k)
+vec vecScalarSubtraction(vec v, float k)
 {
-    vec ret = allocate(v.dim);
+    vec ret = allocateVec(v.dim);
 
     for (unsigned int i = 0; i < ret.dim; i++)
     {
@@ -196,7 +195,7 @@ vec scalarSubtraction(vec v, float k)
  * @param v the pointer to the vector
  * @param k the scalar
  */
-void scalarSubtractionFrom(vec *v, float k)
+void vecScalarSubtractionFrom(vec *v, float k)
 {
     for (unsigned int i = 0; i < v->dim; i++)
     {
@@ -210,9 +209,9 @@ void scalarSubtractionFrom(vec *v, float k)
  * @param k the scalar
  * @return the multiplied vector
  */
-vec scalarMultiplication(vec v, float k)
+vec vecScalarMultiplication(vec v, float k)
 {
-    vec ret = allocate(v.dim);
+    vec ret = allocateVec(v.dim);
 
     for (unsigned int i = 0; i < ret.dim; i++)
     {
@@ -227,7 +226,7 @@ vec scalarMultiplication(vec v, float k)
  * @param v the pointer to the vector
  * @param k the scalar
  */
-void scalarMultiplicationBy(vec *v, float k)
+void vecScalarMultiplicationBy(vec *v, float k)
 {
     for (unsigned int i = 0; i < v->dim; i++)
     {
@@ -241,9 +240,9 @@ void scalarMultiplicationBy(vec *v, float k)
  * @param k the scalar
  * @return the divided vector
  */
-vec scalarDivision(vec v, float k)
+vec vecScalarDivision(vec v, float k)
 {
-    vec ret = allocate(v.dim);
+    vec ret = allocateVec(v.dim);
 
     for (unsigned int i = 0; i < ret.dim; i++)
     {
@@ -258,7 +257,7 @@ vec scalarDivision(vec v, float k)
  * @param v the pointer to the vector
  * @param k the scalar
  */
-void scalarDivisionBy(vec *v, float k)
+void vecScalarDivisionBy(vec *v, float k)
 {
     for (unsigned int i = 0; i < v->dim; i++)
     {
@@ -272,9 +271,9 @@ void scalarDivisionBy(vec *v, float k)
  * @param k the scalar
  * @return the resultant vector
  */
-vec power(vec v, float k)
+vec vecPower(vec v, float k)
 {
-    vec ret = allocate(v.dim);
+    vec ret = allocateVec(v.dim);
 
     for (unsigned int i = 0; i < ret.dim; i++)
     {
@@ -289,7 +288,7 @@ vec power(vec v, float k)
  * @param v the pointer to the vector
  * @param k the power
  */
-void powerOf(vec *v, float k)
+void vecPowerOf(vec *v, float k)
 {
     for (unsigned int i = 0; i < v->dim; i++)
     {
@@ -303,14 +302,14 @@ void powerOf(vec *v, float k)
  * @param v2 the second vector
  * @return the sum of the vectors or VEC_UNDEFINED if the vectors have different dimensions
  */
-vec add(vec v1, vec v2)
+vec vecAdd(vec v1, vec v2)
 {
     if (v1.dim != v2.dim)
     {
         return VEC_UNDEFINED;
     }
 
-    vec ret = allocate(v1.dim);
+    vec ret = allocateVec(v1.dim);
 
     for (unsigned int i = 0; i < ret.dim; i++)
     {
@@ -326,7 +325,7 @@ vec add(vec v1, vec v2)
  * @param v2 the vector to be added
  * @return true if the vectors have the same dimension
  */
-bool addTo(vec *v1, vec v2)
+bool vecAddTo(vec *v1, vec v2)
 {
     if (v1->dim != v2.dim)
     {
@@ -347,14 +346,14 @@ bool addTo(vec *v1, vec v2)
  * @param v2 the second vector
  * @return the difference of the vectors or VEC_UNDEFINED if the vectors have different dimensions
  */
-vec subtract(vec v1, vec v2)
+vec vecSubtract(vec v1, vec v2)
 {
     if (v1.dim != v2.dim)
     {
         return VEC_UNDEFINED;
     }
 
-    vec ret = allocate(v1.dim);
+    vec ret = allocateVec(v1.dim);
 
     for (unsigned int i = 0; i < ret.dim; i++)
     {
@@ -370,7 +369,7 @@ vec subtract(vec v1, vec v2)
  * @param v2 the vector to be subtracted
  * @return true if the vectors have the same dimension
  */
-bool subtractFrom(vec *v1, vec v2)
+bool vecSubtractFrom(vec *v1, vec v2)
 {
     if (v1->dim != v2.dim)
     {
@@ -391,14 +390,14 @@ bool subtractFrom(vec *v1, vec v2)
  * @param v2 the second vector
  * @return the element-wise multiplication of the vectors or VEC_UNDEFINED if the vectors have different dimensions
  */
-vec multiply(vec v1, vec v2)
+vec vecMultiply(vec v1, vec v2)
 {
     if (v1.dim != v2.dim)
     {
         return VEC_UNDEFINED;
     }
 
-    vec ret = allocate(v1.dim);
+    vec ret = allocateVec(v1.dim);
 
     for (unsigned int i = 0; i < ret.dim; i++)
     {
@@ -414,7 +413,7 @@ vec multiply(vec v1, vec v2)
  * @param v2 the vector to be multiplied
  * @return true if the vectors have the same dimension
  */
-bool multiplyBy(vec *v1, vec v2)
+bool vecMultiplyBy(vec *v1, vec v2)
 {
     if (v1->dim != v2.dim)
     {
@@ -435,14 +434,14 @@ bool multiplyBy(vec *v1, vec v2)
  * @param v2 the second vector
  * @return the element-wise division of the vectors or VEC_UNDEFINED if the vectors have different dimensions
  */
-vec divide(vec v1, vec v2)
+vec vecDivide(vec v1, vec v2)
 {
     if (v1.dim != v2.dim)
     {
         return VEC_UNDEFINED;
     }
 
-    vec ret = allocate(v1.dim);
+    vec ret = allocateVec(v1.dim);
 
     for (unsigned int i = 0; i < ret.dim; i++)
     {
@@ -458,7 +457,7 @@ vec divide(vec v1, vec v2)
  * @param v2 the vector to be divided
  * @return true if the vectors have the same dimension
  */
-bool divideBy(vec *v1, vec v2)
+bool vecDivideBy(vec *v1, vec v2)
 {
     if (v1->dim != v2.dim)
     {
@@ -479,7 +478,7 @@ bool divideBy(vec *v1, vec v2)
  * @param v2 the second vector
  * @return the dot product of the vectors, 0 if they have different dimensions
  */
-float dot(vec v1, vec v2)
+float vecDot(vec v1, vec v2)
 {
     float ret = 0.0f;
 
@@ -500,9 +499,9 @@ float dot(vec v1, vec v2)
  * @param v2 the second vector
  * @return true if the vectors have the same dimension and the dot product is zero
  */
-bool orthogonal(vec v1, vec v2)
+bool vecOrthogonal(vec v1, vec v2)
 {
-    return v1.dim == v2.dim ? dot(v1, v2) == 0.0f : false;
+    return v1.dim == v2.dim ? vecDot(v1, v2) == 0.0f : false;
 }
 
 /**
@@ -512,14 +511,14 @@ bool orthogonal(vec v1, vec v2)
  * @param v2 the second vector
  * @return the cross product of the two vectors, VEC_UNDEFINED if the vectors are not in 3D
  */
-vec cross(vec v1, vec v2)
+vec vecCross(vec v1, vec v2)
 {
     if (v1.dim != 3 || v2.dim != 3)
     {
         return VEC_UNDEFINED;
     }
 
-    vec ret = allocate(3);
+    vec ret = allocateVec(3);
 
     ret.elements[0] = (v1.elements[1] * v2.elements[2]) - (v1.elements[2] * v2.elements[1]);
     ret.elements[1] = -1 * ((v1.elements[0] * v2.elements[2]) - (v1.elements[2] * v2.elements[0]));
@@ -533,9 +532,9 @@ vec cross(vec v1, vec v2)
  * @param v the vector
  * @return the magnitude (square root of the sum of the squares of the components)
  */
-float magnitude(vec v)
+float vecMagnitude(vec v)
 {
-    return sqrt(magnitudeSquared(v));
+    return sqrt(vecMagnitudeSquared(v));
 }
 
 /**
@@ -543,7 +542,7 @@ float magnitude(vec v)
  * @param v the vector
  * @return the magnitude squared (sum of the squares of the components)
  */
-float magnitudeSquared(vec v)
+float vecMagnitudeSquared(vec v)
 {
     float ret = 0.0f;
 
@@ -561,10 +560,10 @@ float magnitudeSquared(vec v)
  * @param v the vector
  * @return the normal vector
  */
-vec normalized(vec v)
+vec vecNormalized(vec v)
 {
-    vec ret = allocate(v.dim);
-    float mag = magnitude(v);
+    vec ret = allocateVec(v.dim);
+    float mag = vecMagnitude(v);
 
     for (unsigned int i = 0; i < ret.dim; i++)
     {
@@ -578,9 +577,9 @@ vec normalized(vec v)
  * normalizes the vector
  * @param v the pointer to the vector to be normalized
  */
-void normalize(vec *v)
+void vecNormalize(vec *v)
 {
-    float mag = magnitude(*v);
+    float mag = vecMagnitude(*v);
 
     for (unsigned int i = 0; i < v->dim; i++)
     {
