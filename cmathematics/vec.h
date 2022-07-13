@@ -1,7 +1,7 @@
 #include <stdarg.h>
 #include <stdio.h>
 
-#include "./cmathematics.h"
+#include "cmathematics.h"
 
 #ifndef VEC_H
 #define VEC_H
@@ -18,7 +18,7 @@ typedef struct
 extern const vec VEC_UNDEFINED; // undefined vector (no dimension)
 
 /**
- * allocateVec memory for a vector
+ * allocate memory for a vector
  * @param dim the dimension of the vector
  * @return the vector
  */
@@ -41,6 +41,7 @@ vec constructEmptyVector(unsigned int dim);
 
 /**
  * construct a new vector with specified values
+ * <b>NOTE: must pass in floats as arguments</b>
  * @param dim the dimension of the vector
  * @param ... the values to put in the vector
  * @return the vector
@@ -50,6 +51,7 @@ vec newVector(unsigned int dim, ...);
 /**
  * construct a new vector with specified values
  * will automatically calculate the number of arguments
+ * <b>NOTE: must pass in floats as arguments</b>
  * @param .. the values to put in the vector
  * @return the vector
  */
@@ -228,7 +230,7 @@ bool vecDivideBy(vec *v1, vec v2);
  * @param v2 the second vector
  * @return the dot product of the vectors, 0 if they have different dimensions
  */
-float vecDot(vec v1, vec v2);
+float dot(vec v1, vec v2);
 
 /**
  * determines if two vectors are orthogonal
@@ -236,7 +238,7 @@ float vecDot(vec v1, vec v2);
  * @param v2 the second vector
  * @return true if the vectors have the same dimension and the dot product is zero
  */
-bool vecOrthogonal(vec v1, vec v2);
+bool orthogonal(vec v1, vec v2);
 
 /**
  * calculates the cross product of two vectors in three dimensions
@@ -245,7 +247,7 @@ bool vecOrthogonal(vec v1, vec v2);
  * @param v2 the second vector
  * @return the cross product of the two vectors, VEC_UNDEFINED if the vectors are not in 3D
  */
-vec vecCross(vec v1, vec v2);
+vec cross(vec v1, vec v2);
 
 /**
  * calculates the magnitude of the vector

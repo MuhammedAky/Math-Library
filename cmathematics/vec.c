@@ -1,4 +1,4 @@
-#include "./vec.h"
+#include "vec.h"
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
@@ -6,11 +6,12 @@
 const vec VEC_UNDEFINED = {0, NULL}; // undefined vector (no dimension)
 
 /**
- * allocateVec memory for a vector
+ * allocate memory for a vector
  * @param dim the dimension of the vector
  * @return the vector
  */
-vec allocateVec(unsigned int dim){
+vec allocateVec(unsigned int dim)
+{
     vec ret;
 
     ret.dim = dim;
@@ -48,10 +49,14 @@ vec constructEmptyVector(unsigned int dim)
 }
 
 /**
- * construct a new vector with specified values
- * @param dim the dimension of the vector
- * @param ... the values to put in the vector
- * @return the vector
+ * construct a new matrix with specified values
+ * <b>NOTE: must pass in floats as arguments</b>
+ * <b>NOTE: pass values in row by row</b>
+ * @param rows the number of rows
+ * @param cols the number of cols
+ * @param numVals the number of values passed in
+ * @param ... the values to put in the matrix
+ * @return the matrix
  */
 vec newVector(unsigned int dim, ...)
 {
@@ -478,7 +483,7 @@ bool vecDivideBy(vec *v1, vec v2)
  * @param v2 the second vector
  * @return the dot product of the vectors, 0 if they have different dimensions
  */
-float vecDot(vec v1, vec v2)
+float dot(vec v1, vec v2)
 {
     float ret = 0.0f;
 
@@ -499,9 +504,9 @@ float vecDot(vec v1, vec v2)
  * @param v2 the second vector
  * @return true if the vectors have the same dimension and the dot product is zero
  */
-bool vecOrthogonal(vec v1, vec v2)
+bool orthogonal(vec v1, vec v2)
 {
-    return v1.dim == v2.dim ? vecDot(v1, v2) == 0.0f : false;
+    return v1.dim == v2.dim ? dot(v1, v2) == 0.0f : false;
 }
 
 /**
@@ -511,7 +516,7 @@ bool vecOrthogonal(vec v1, vec v2)
  * @param v2 the second vector
  * @return the cross product of the two vectors, VEC_UNDEFINED if the vectors are not in 3D
  */
-vec vecCross(vec v1, vec v2)
+vec cross(vec v1, vec v2)
 {
     if (v1.dim != 3 || v2.dim != 3)
     {
