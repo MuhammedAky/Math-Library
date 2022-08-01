@@ -319,6 +319,8 @@ mat spliceMat(mat *m, unsigned int exclRow, unsigned int exclCol);
  * @param m the matrix
  * the determinant value, 0 if not a square matrix
  */
-float determinant(mat m);
+float determinant(mat *m);
+
+float determinantExclusion(mat *m, unsigned int row, unsigned int col, unsigned int *skipCols, unsigned int *noSkipCols);
 
 #endif

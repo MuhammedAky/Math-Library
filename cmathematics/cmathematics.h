@@ -15,4 +15,8 @@ typedef unsigned char bool;
 
 #define MAX(i1, i2) (i1 > i2 ? i1 : i2)
 
+bool containsUint(unsigned int *arr, unsigned int noElements, unsigned int target);
+
+void printUintArray(unsigned int *arr, unsigned int noElements);
+
 #endif
