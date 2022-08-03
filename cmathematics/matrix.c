@@ -30,6 +30,18 @@ mat allocateMat(unsigned int rows, unsigned int cols)
 }
 
 /**
+ * frees a matrix's memory
+ * @param m the matrix
+ */
+void freeMat(mat *m)
+{
+    free(m->elements);
+    m->elements = NULL;
+    m->rows = 0;
+    m->cols = 0;
+}
+
+/**
  * construct an identity matrix:
  * square matrix with ones along the main diagonal
  * @param dim the dimension of the matrix (the number of rows and cols)
@@ -116,23 +128,21 @@ mat newMatrix(unsigned int rows, unsigned int cols, unsigned int numVals, ...)
 
 /**
  * copies a matrix's values
- * @param m the matrix to be copied
- * @return the copy (the parameter to the function)
- */
-mat copyMat(mat m)
-{
-    return m;
-}
-
-/**
- * copies a matrix's values using memcpy
  * @param m the pointer to the matrix to be copied
  * @return the copy
  */
-mat copyMatPtr(mat *m)
+mat copyMat(mat *m)
 {
-    mat ret;
-    memcpy(&ret, m, sizeof(mat));
+    mat ret = allocateMat(m->rows, m->cols);
+
+    for (unsigned int r = 0; r < ret.rows; r++)
+    {
+        for (unsigned int c = 0; c < ret.cols; c++)
+        {
+            ret.elements[r][c] = m->elements[r][c];
+        }
+    }
+
     return ret;
 }
 
@@ -951,102 +961,306 @@ mat spliceMat(mat *m, unsigned int exclRow, unsigned int exclCol)
 }
 
 /**
- * calculate the determinant of the matrix through cofactor expansion
+ * calculate the determinant of a matrix through cofactor expansion
  * @param m the matrix
- * the determinant value, 0 if not a square matrix
+ * @return the determinant value, 0 if not a square matrix
  */
 float determinant(mat *m)
 {
-    // // must be a square matrix
-    // if (m.rows != m.cols)
-    // {
-    //     return 0.0f;
-    // }
-
-    // // base case
-    // if (m.rows == 1)
-    // {
-    //     return m.elements[0][0];
-    // }
-
-    // char cofactorSign = 1;
-    // float ret = 0.0f;
-
-    // // expand across first row
-    // for (unsigned int c = 0; c < m.cols; c++)
-    // {
-    //     // recurse to matrix without first row and current column
-    //     ret += cofactorSign * m.elements[0][c] * determinant(spliceMat(&m, 1, c + 1));
-    //     // alternate sign
-    //     cofactorSign = -cofactorSign;
-    // }
-
-    // return ret;
-    if (m->rows != m->cols || m->rows == 0){
+    // must be a square matrix with at least 1 row
+    if (m->rows != m->cols || m->rows == 0)
+    {
         return 0.0f;
     }
 
-    // initalize array
-    unsigned int *skipCols = malloc(m->cols * sizeof(unsigned int));
-    unsigned int noSkipCols;
+    float ret = 0.0f;
 
-    float ret = determinantExclusion(m,1,0,skipCols,&noSkipCols);
+    // expand across first row
+    for (unsigned int c = 0; c < m->cols; c++)
+    {
+        if (m->elements[0][c] != 0.0f)
+        {
+            ret += m->elements[0][c] * cofactor(m, 1, c + 1);
+        }
+    }
+
+    return ret;
+}
+
+/**
+ * base method to calculate the determinant of the matrix through cofactor expansion with an exclusion list
+ * @param m the matrix
+ * @return the determinant value, 0 if not a square matrix
+ */
+float determinantExclusion(mat *m)
+{
+    // must be a square matrix with mroe than 1 row
+    if (m->rows != m->cols || m->rows == 0)
+    {
+        return 0.0f;
+    }
+
+    // initialize array
+    unsigned int *skipCols = malloc(m->cols * sizeof(unsigned int));
+    unsigned int noSkipCols = 0;
+
+    float ret = _determinantExclusion(m, 1, 0, skipCols, &noSkipCols);
 
     free(skipCols);
 
     return ret;
 }
 
-float determinantExclusion(mat *m, unsigned int row, unsigned int col, unsigned int *skipCols, unsigned int *noSkipCols) {
+/**
+ * calculate the determinant of a matrix through cofactor expansion using an exclusion list
+ * @param m the matrix
+ * @param row the row to expand on
+ * @param col the new column to exclude
+ * @param skipCols the existing list of columns to exclude
+ * @param noSkipCols the number of columns in the list to skip
+ * @return the determinant
+ */
+float _determinantExclusion(mat *m,
+                            unsigned int row,
+                            unsigned int col,
+                            unsigned int *skipCols,
+                            unsigned int *noSkipCols)
+{
     // insert current column into exclusion list
     skipCols[*noSkipCols] = col;
     (*noSkipCols)++;
 
-    printf("%d, %d => %d", row, col, *noSkipCols);
-    printUintArray(skipCols, *noSkipCols);
-
-    if (row == m->rows - 1) {
+    if (row == m->rows - 1)
+    {
         printf("");
     }
 
     // base case to return single element
-    if (row == m->rows) {
+    if (row == m->rows)
+    {
         unsigned int c = m->cols;
         // find last column not in exclusion list
-        if (*noSkipCols != 0) {
-            if (skipCols[*noSkipCols -1] != 0){
-                while(containsUint(skipCols, *noSkipCols, c)) {
+        if (*noSkipCols != 0)
+        {
+            if (skipCols[*noSkipCols - 1] != 0)
+            {
+                while (containsUint(skipCols, *noSkipCols, c))
+                {
                     c--;
                 }
                 (*noSkipCols)--;
             }
         }
-
-        return m->elements[row - 1][col - 1];
+        return m->elements[row - 1][c - 1];
     }
 
     float ret = 0.0f;
     char cofactorSign = 1;
 
     // cofactor expansion across current row
-    for (unsigned int c = 1; c <= m->cols; c++) {
+    for (unsigned int c = 1; c <= m->cols; c++)
+    {
         // skip excluded cols
-        if (containsUint(skipCols, *noSkipCols, c)) {
+        if (containsUint(skipCols, *noSkipCols, c))
+        {
             continue;
         }
 
         float res = 0.0f;
-        if (m->elements[row - 1][c - 1] != 0.0f) {
+        if (m->elements[row - 1][c - 1] != 0.0f)
+        {
             // recursive
-            res = cofactorSign * m->elements[row - 1][c - 1] * determinantExclusion(m, row + 1, c, skipCols, noSkipCols);
+            res = cofactorSign *
+                  m->elements[row - 1][c - 1] *
+                  _determinantExclusion(m, row + 1, c, skipCols, noSkipCols);
         }
 
         ret += res;
         cofactorSign = -cofactorSign;
     }
+
     // remove current column from the list
     (*noSkipCols)--;
     return ret;
+}
 
+/**
+ * calculates the cofactor of a matrix at the corresponding row and column
+ * @param m the matrix
+ * @param r the row index (count from 1)
+ * @param c the col index (count from 1)
+ * @return the cofactor value
+ */
+float cofactor(mat *m, unsigned int r, unsigned int c)
+{
+    // must be a square matrix with at least 1 row
+    if (m->rows != m->cols || m->rows == 0)
+    {
+        return 0.0f;
+    }
 
+    // boundary condition
+    if (r > m->rows || c > m->cols)
+    {
+        return 0.0f;
+    }
+
+    // alternate signs
+    // if row + col is even, positive
+    // if row + col is odd, negative
+    char sign = ((r + c) & 1) == 0 ? 1 : -1;
+
+    mat splicedMat = spliceMat(m, r, c);
+
+    // cofactor = sign * determinant of the matrix without row and col
+    float ret = sign * determinantExclusion(&splicedMat);
+
+    freeMat(&splicedMat);
+
+    return ret;
+}
+
+/**
+ * calculate the cofactor matrix (entries are the corresponding cofactors)
+ * @param m the matrix
+ * @return the cofactor matrix, MAT_UNDEFINED if not a square matrix
+ */
+mat cofactorMatrix(mat *m)
+{
+    // must be a square matrix with at least 1 row
+    if (m->rows != m->cols || m->rows == 0)
+    {
+        return MAT_UNDEFINED;
+    }
+
+    mat ret = allocateMat(m->rows, m->cols);
+
+    for (unsigned int r = 0; r < ret.rows; r++)
+    {
+        for (unsigned int c = 0; c < ret.cols; c++)
+        {
+            ret.elements[r][c] = cofactor(m, r + 1, c + 1);
+        }
+    }
+
+    return ret;
+}
+
+/**
+ * calculate the adjugate of a matrix (transpose of the cofactor matrix)
+ * @param m the matrix
+ * @return the adjugate, MAT_UNDEFINED if not a square matrix
+ */
+mat adjugate(mat *m)
+{
+    // must be a square matrix with at least 1 row
+    if (m->rows != m->cols || m->rows == 0)
+    {
+        return MAT_UNDEFINED;
+    }
+
+    mat ret = allocateMat(m->rows, m->cols);
+
+    for (unsigned int r = 0; r < ret.rows; r++)
+    {
+        for (unsigned int c = 0; c < ret.cols; c++)
+        {
+            ret.elements[r][c] = cofactor(m, c + 1, r + 1);
+        }
+    }
+
+    return ret;
+}
+
+/**
+ * determine if a matrix is invertible
+ * @param m the matrix
+ * @return if the matrix is square and has a nonzero determinant
+ */
+bool invertible(mat *m)
+{
+    // must be a square matrix with at least 1 row
+    if (m->rows != m->cols || m->rows == 0)
+    {
+        return false;
+    }
+
+    return determinant(m) != 0.0f;
+}
+
+/**
+ * calculate the inverse of a matrix using the adjugate
+ * @param m the matrix
+ * @return the inverse, MAT_UNDEFINED if not invertible
+ */
+mat inverseMat(mat *m)
+{
+    // must be a square matrix with at least 1 row
+    if (m->rows != m->cols || m->rows == 0)
+    {
+        return MAT_UNDEFINED;
+    }
+
+    // get the adjugate
+    mat adj = adjugate(m);
+
+    // calculate the determinant using the adjugate
+    float det = 0.0f;
+
+    // expand across first row of the matrix
+    for (unsigned int c = 0; c < m->cols; c++)
+    {
+        if (m->elements[0][c] != 0.0f)
+        {
+            det += m->elements[0][c] * adj.elements[c][0]; // [c][0] because the adjugate is the transpose of the cofactor matrix
+        }
+    }
+
+    if (det == 0.0f)
+    {
+        return MAT_UNDEFINED;
+    }
+
+    // inverse = 1 / det * adj
+    mat ret = matScalarMultiplication(adj, 1.0f / det);
+
+    freeMat(&adj);
+
+    return ret;
+}
+
+/**
+ * calculate the inverse of a matrix using Gaussian Elimination
+ * @param m the matrix
+ * @return the inverse, MAT_UNDEFINED if not invertible
+ */
+mat inverseMatRREF(mat *m)
+{
+    if (!invertible(m))
+    {
+        return MAT_UNDEFINED;
+    }
+
+    // augment the identity matrix
+    mat idMat = identity(m->rows);
+    mat opMat = augmentMatrix(m, &idMat);
+
+    // row reduce the augmented matrix
+    rref(&opMat);
+
+    // take the right half of the matrix -> that is the inverse
+    mat ret = allocateMat(m->rows, m->cols);
+
+    for (unsigned int r = 0; r < ret.rows; r++)
+    {
+        for (unsigned int c = 0; c < ret.cols; c++)
+        {
+            ret.elements[r][c] = opMat.elements[r][ret.cols + c];
+        }
+    }
+
+    freeMat(&idMat);
+    freeMat(&opMat);
+
+    return ret;
 }

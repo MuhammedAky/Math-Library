@@ -28,6 +28,12 @@ extern const mat MAT_UNDEFINED; // undefined vector (no dimension)
 mat allocateMat(unsigned int rows, unsigned int cols);
 
 /**
+ * frees a matrix's memory
+ * @param m the matrix
+ */
+void freeMat(mat *m);
+
+/**
  * construct an identity matrix:
  * square matrix with ones along the main diagonal
  * @param dim the dimension of the matrix (the number of rows and cols)
@@ -68,17 +74,10 @@ mat newMatrix(unsigned int rows, unsigned int cols, unsigned int numVals, ...);
 
 /**
  * copies a matrix's values
- * @param m the matrix to be copied
- * @return the copy (the parameter to the function)
- */
-mat copyMat(mat m);
-
-/**
- * copies a matrix's values using memcpy
  * @param m the pointer to the matrix to be copied
  * @return the copy
  */
-mat copyMatPtr(mat *m);
+mat copyMat(mat *m);
 
 /**
  * prints the values of a matrix
@@ -315,12 +314,76 @@ mat augmentMatrix(mat *m, mat *m2);
 mat spliceMat(mat *m, unsigned int exclRow, unsigned int exclCol);
 
 /**
- * calculate the determinant of the matrix through cofactor expansion
+ * calculate the determinant of a matrix through cofactor expansion
  * @param m the matrix
- * the determinant value, 0 if not a square matrix
+ * @return the determinant value, 0 if not a square matrix
  */
 float determinant(mat *m);
 
-float determinantExclusion(mat *m, unsigned int row, unsigned int col, unsigned int *skipCols, unsigned int *noSkipCols);
+/**
+ * base method to calculate the determinant of the matrix through cofactor expansion with an exclusion list
+ * @param m the matrix
+ * @return the determinant value, 0 if not a square matrix
+ */
+float determinantExclusion(mat *m);
+
+/**
+ * calculate the determinant of a matrix through cofactor expansion using an exclusion list
+ * @param m the matrix
+ * @param row the row to expand on
+ * @param col the new column to exclude
+ * @param skipCols the existing list of columns to exclude
+ * @param noSkipCols the number of columns in the list to skip
+ * @return the determinant
+ */
+float _determinantExclusion(mat *m,
+                            unsigned int row,
+                            unsigned int col,
+                            unsigned int *skipCols,
+                            unsigned int *noSkipCols);
+
+/**
+ * calculates the cofactor of a matrix at the corresponding row and column
+ * @param m the matrix
+ * @param r the row index (count from 1)
+ * @param c the col index (count from 1)
+ * @return the cofactor value
+ */
+float cofactor(mat *m, unsigned int r, unsigned int c);
+
+/**
+ * calculate the cofactor matrix (entries are the corresponding cofactors)
+ * @param m the matrix
+ * @return the cofactor matrix, MAT_UNDEFINED if not a square matrix
+ */
+mat cofactorMatrix(mat *m);
+
+/**
+ * calculate the adjugate of a matrix (transpose of the cofactor matrix)
+ * @param m the matrix
+ * @return the adjugate, MAT_UNDEFINED if not a square matrix
+ */
+mat adjugate(mat *m);
+
+/**
+ * determine if a matrix is invertible
+ * @param m the matrix
+ * @return if the matrix is square and has a nonzero determinant
+ */
+bool invertible(mat *m);
+
+/**
+ * calculate the inverse of a matrix using the adjugate
+ * @param m the matrix
+ * @return the inverse, MAT_UNDEFINED if not invertible
+ */
+mat inverseMat(mat *m);
+
+/**
+ * calculate the inverse of a matrix using Gaussian Elimination
+ * @param m the matrix
+ * @return the inverse, MAT_UNDEFINED if not invertible
+ */
+mat inverseMatRREF(mat *m);
 
 #endif
