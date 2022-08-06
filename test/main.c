@@ -9,14 +9,13 @@ int main()
 {
     printf("Hello, world!\n");
 
-    mat m = matrix(2,2,
-                    4.0, 7.0,
-                    2.0, 6.0
-    );
+    bigint b1 = strToBigint("123456789780");
+    bigint b2 = strToBigint("123856789780");
+    bigint b3 = addBigint(b1, b2);
+    bigint b4 = subtractBigint(b3, b1);
 
-    printMat(m);
+    printf("%s + %s = %s\n", bigintToString(b1), bigintToString(b2), bigintToString(b3));
+    printf("%s - %s = %s\n", bigintToString(b3), bigintToString(b1), bigintToString(b4));
 
-    mat inv = inverseMat(&m);
-    printMat(inv);
-
+    return 0;
 }
