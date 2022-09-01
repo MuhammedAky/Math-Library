@@ -66,4 +66,4 @@ double minf(double x, double y)
 double maxf(double x, double y)
 {
     return x >= y ? x : y;
-} 
+}

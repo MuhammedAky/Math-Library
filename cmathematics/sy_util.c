@@ -50,23 +50,28 @@ bool SY_charIsNumber(char c)
            c == '-';
 }
 
-SY_token *SY_findElement(int i, strstream *s, avl *list, int *length)
+SY_token *SY_findElement(unsigned int i, strstream *s, avl *list, int *length)
 {
     if (!list)
     {
+        *length = 0;
         return NULL;
     }
+
+    // compare to current key
     unsigned int n = strlen((char *)list->key);
     int cmp = 0;
     if (i + n < s->size)
     {
-        char c = s->str[i + n];
-        s->str[i + n] = '\0';
-        cmp = strcmp(s->str + i, list->key);
-        s->str[i + n] = c;
+        // have room to find the token
+        char c = s->str[i + n];              // store first excluded character
+        s->str[i + n] = '\0';                // create a temporary terminator
+        cmp = strcmp(s->str + i, list->key); // compare substring to the current key
+        s->str[i + n] = c;                   // return character to spot
     }
     else
     {
+        // still compare to end of the string
         cmp = strcmp(s->str + i, list->key);
     }
 
@@ -105,11 +110,12 @@ SY_token *SY_createTokenConstant(double value)
     return ret;
 }
 
-SY_token *SY_createTokenConstantString(char *name, double value)
+SY_token *SY_createTokenConstantString(char *name, double value, bool restricted)
 {
     SY_token *ret = SY_createToken(CONSTANTSTR);
     ret->val.namedConstVal.name = name;
     ret->val.namedConstVal.value = value;
+    ret->val.namedConstVal.restricted = restricted;
     return ret;
 }
 
@@ -155,6 +161,22 @@ void SY_freeToken(SY_token *t)
         //free(t->val.strVal);
     }
     free(t);
+}
+
+void SY_freeTokenList(dynamicarray *list)
+{
+    dynarr_iterator it = dynarr_iterator_new(list);
+    SY_token *cur = NULL;
+
+    while ((cur = dynarr_iterator_next(&it)))
+    {
+        if (cur->type == CONSTANT)
+        {
+            free(cur);
+        }
+    }
+
+    dynarr_free(list);
 }
 
 SY_token *SY_createDefaultFunction(char *name)
