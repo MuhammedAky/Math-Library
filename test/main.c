@@ -2,75 +2,35 @@
 #include <stdlib.h>
 
 #include "../cmathematics/cmathematics.h"
-#include "../cmathematics/vec.h"
-#include "../cmathematics/matrix.h"
-#include "../cmathematics/bigint.h"
-#include "../cmathematics/shuntingyard.h"
-#include "../cmathematics/graph.h"
+#include "../cmathematics/aes.h"
 
-void printToken(void *el)
+char hex[16] = "0123456789ABCDEF";
+void printCharArr(unsigned char *arr, int len, bool asChar)
 {
-    SY_token *t = el;
-    switch (t->type)
+    printf("{ ");
+    for (int i = 0; i < len; i++)
     {
-    case CONSTANT:
-        printf("%f ", t->val.constVal);
-        break;
-    case FUNCTION:
-    case OPERATOR:
-        printf("%s ", t->val.funcVal.name);
-        break;
-    case CONSTANTSTR:
-        printf("%s ", t->val.namedConstVal.name);
-        break;
-    case ELSE:
-        printf("null ");
-        break;
-    default:
-        printf("%s ", t->val.strVal);
-        break;
+        printf("%c%c ", hex[arr[i] >> 4], hex[arr[i] & 0x0f]);
     }
-}
-
-void printIntArr(int *arr, int n)
-{
-    printf("[ ");
-
-    for (int i = 0; i < n; i++)
-    {
-        printf("%d, ", arr[i]);
-    }
-
-    printf("]\n");
+    printf("}\n");
 }
 
 int main()
 {
     printf("Hello, world!\n");
 
-    graph g = graph_new(ADJ_MATRIX, 7);
+    unsigned char *txt = "asidlhgfyiuyguaysdgbagasdcvetwee";
+    unsigned char *key = "abcdefghijklmnop";
+    unsigned char *cipher = NULL;
 
-    graph_addDirectedWeightedEdge(&g, 0, 1, 6);
-    graph_addDirectedWeightedEdge(&g, 0, 3, 5);
-    graph_addDirectedWeightedEdge(&g, 1, 2, 7);
-    graph_addDirectedWeightedEdge(&g, 1, 3, 3);
-    graph_addDirectedWeightedEdge(&g, 2, 4, 15);
-    graph_addDirectedWeightedEdge(&g, 2, 5, 2);
-    graph_addDirectedWeightedEdge(&g, 3, 2, 2);
-    graph_addDirectedWeightedEdge(&g, 3, 4, 11);
-    graph_addDirectedWeightedEdge(&g, 4, 6, 3);
-    graph_addDirectedWeightedEdge(&g, 5, 4, 1);
-    graph_addDirectedWeightedEdge(&g, 5, 6, 6);
+    aes_encrypt(txt, 32, key, 16, &cipher);
 
-    char *str = graph_toString(&g);
-    printf("%s\n", str);
-    free(str);
-
-    int *p = graph_dijkstra(&g, 0);
-    printIntArr(p, g.n);
-    free(p);
-
-    graph_free(&g);
+    printf("Plaintext: ");
+    printCharArr(txt, 32, false);
+    printf("Key: ");
+    printCharArr(key, 16, false);
+    printf("Cipher: ");
+    printCharArr(cipher, 32, false);
 
     return 0;
 }

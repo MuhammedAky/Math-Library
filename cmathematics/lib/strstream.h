@@ -1,5 +1,4 @@
 #include <stdio.h>
-
 #ifndef STRSTREAM_H
 #define STRSTREAM_H
 

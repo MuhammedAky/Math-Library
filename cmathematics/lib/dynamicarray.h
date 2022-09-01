@@ -1,190 +1,52 @@
-#include "dynamicarray.h"
+#ifndef DYNAMICARRAY_H
+#define DYNAMICARRAY_H
 
-#include <stdlib.h>
-#include <string.h>
-
-#define DYNARR_DEFAULT_SIZE 4
-
-dynamicarray dynarr_defaultAllocate()
+typedef struct
 {
-    return dynarr_allocate(DYNARR_DEFAULT_SIZE);
-}
+    unsigned int size;
+    unsigned int capacity;
+    void **list;
+} dynamicarray;
 
-dynamicarray dynarr_allocate(unsigned int capacity)
-{
-    if (!capacity)
-    {
-        capacity = DYNARR_DEFAULT_SIZE;
+dynamicarray dynarr_defaultAllocate();
+dynamicarray dynarr_allocate(unsigned int capacity);
+
+void dynarr_addAtIdx(dynamicarray *list, void *element, unsigned int idx);
+void dynarr_addFirst(dynamicarray *list, void *element);
+void dynarr_addLast(dynamicarray *list, void *element);
+void dynarr_reallocate(dynamicarray *list, unsigned int additionalLength);
+
+void dynarr_set(dynamicarray *list, void *element, unsigned int idx);
+
+void *dynarr_removeAtIdx(dynamicarray *list, unsigned int idx);
+void *dynarr_removeFirst(dynamicarray *list);
+void *dynarr_removeLast(dynamicarray *list);
+
+void *dynarr_get(dynamicarray *list, unsigned int idx);
+
+void dynarr_iterate(dynamicarray *list, void (*visit)(void *element));
+
+#define dynarr_createSpecificIterator(type)                                         \
+    void dynarr_##type##_iterate(dynamicarray *list, void (*visit)(type * element)) \
+    {                                                                               \
+        for (unsigned int i = 0; i < list->size; i++)                               \
+        {                                                                           \
+            visit((type *)list->list[i]);                                           \
+        }                                                                           \
     }
 
-    dynamicarray ret;
+void dynarr_clear(dynamicarray *list);
 
-    // allocate memory for the array
-    ret.list = malloc(capacity * sizeof(void *));
-    ret.size = 0;
-    ret.capacity = ret.list ? capacity : 0;
+void dynarr_free(dynamicarray *list);
+void dynarr_freeDeep(dynamicarray *list);
 
-    return ret;
-}
-
-void dynarr_addAtIdx(dynamicarray *list, void *element, unsigned int idx)
+typedef struct dynarr_iterator
 {
-    if (idx > list->size)
-    {
-        // boundary error
-        return;
-    }
+    dynamicarray *list;
+    unsigned int cur_idx;
+} dynarr_iterator;
 
-    // resize if necessary
-    dynarr_reallocate(list, 1);
+dynarr_iterator dynarr_iterator_new(dynamicarray *list);
+void *dynarr_iterator_next(dynarr_iterator *it);
 
-    // right shift elements beyond index to make space
-    for (unsigned int i = list->size; i > idx; i--)
-    {
-        list->list[i] = list->list[i - 1];
-    }
-
-    // set element at index
-    list->list[idx] = element;
-    list->size++;
-}
-
-void dynarr_addFirst(dynamicarray *list, void *element)
-{
-    dynarr_addAtIdx(list, element, 0);
-}
-
-void dynarr_addLast(dynamicarray *list, void *element)
-{
-    dynarr_addAtIdx(list, element, list->size);
-}
-
-void dynarr_set(dynamicarray *list, void *element, unsigned int idx)
-{
-    if (idx > list->size)
-    {
-        // boundary error
-        return;
-    }
-
-    list->list[idx] = element;
-}
-
-void dynarr_reallocate(dynamicarray *list, unsigned int additionalLength)
-{
-    unsigned int newSize = list->size + additionalLength;
-
-    if (newSize > list->capacity)
-    {
-        // get required capacity
-        unsigned int capacity = list->capacity;
-        if (!capacity)
-        {
-            capacity = 1;
-        }
-        while (capacity < newSize)
-        {
-            capacity <<= 1;
-        }
-
-        // must reallocate
-        void **oldMem = list->list;
-        list->list = realloc(list->list, capacity * sizeof(void *));
-        if (!list->list)
-        {
-            // allocate in new location
-            list->list = malloc(capacity * sizeof(void *));
-            memcpy(list->list, oldMem, capacity * sizeof(void *));
-
-            // update pointers
-            free(oldMem);
-        }
-
-        list->capacity = capacity;
-    }
-}
-
-void *dynarr_removeAtIdx(dynamicarray *list, unsigned int idx)
-{
-    // boundary check
-    if (idx >= list->size)
-    {
-        return NULL;
-    }
-
-    // get the element to be removed
-    void *ret = list->list[idx];
-
-    // left shift elements
-    for (unsigned int i = idx + 1; i < list->size; i++)
-    {
-        list->list[i - 1] = list->list[i];
-    }
-    // set last element to null
-    list->list[list->size - 1] = NULL;
-
-    // decrease size
-    list->size--;
-
-    return ret;
-}
-
-void *dynarr_removeFirst(dynamicarray *list)
-{
-    return dynarr_removeAtIdx(list, 0);
-}
-
-void *dynarr_removeLast(dynamicarray *list)
-{
-    return dynarr_removeAtIdx(list, list->size - 1);
-}
-
-void *dynarr_get(dynamicarray *list, unsigned int idx)
-{
-    // if in bounds, return element
-    return (idx < list->size) ? list->list[idx] : NULL;
-}
-
-void dynarr_iterate(dynamicarray *list, void (*visit)(void *element))
-{
-    for (unsigned int i = 0; i < list->size; i++)
-    {
-        visit(list->list[i]);
-    }
-}
-
-void dynarr_clear(dynamicarray *list)
-{
-    free(list->list);
-    list->size = 0;
-    list->capacity = DYNARR_DEFAULT_SIZE;
-    list->list = malloc(DYNARR_DEFAULT_SIZE * sizeof(void *));
-}
-
-void dynarr_free(dynamicarray *list)
-{
-    free(list->list);
-}
-
-void dynarr_freeDeep(dynamicarray *list)
-{
-    for (unsigned int i = 0; i < list->size; i++)
-    {
-        free(list->list[i]);
-    }
-}
-
-dynarr_iterator dynarr_iterator_new(dynamicarray *list)
-{
-    dynarr_iterator ret;
-
-    ret.list = list;
-    ret.cur_idx = 0;
-
-    return ret;
-}
-
-void *dynarr_iterator_next(dynarr_iterator *it)
-{
-    return it->cur_idx < it->list->size ? it->list->list[it->cur_idx++] : NULL;
-}
+#endif
