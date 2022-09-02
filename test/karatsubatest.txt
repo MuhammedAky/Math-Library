@@ -2,7 +2,7 @@ eg x[6] * y[4]
 karatsuba(x, 6, y, 4, 0, 8)
     xsum = x[0:4) + x[4:8) // use 0 when out of bounds
     ysum = y[0:4) + y[4:8) // use 0 when out of bounds = y[0:4)
-
+    
     e = karatsuba(x, 6, y, 4, 4, 8)
         idxi <= yf || idxi <= xf return 0
     f = karatsuba(x, 6, y, 4, 0, 4)
@@ -77,3 +77,4 @@ karatsuba(x, 3, y, 3, 0, 4)
         0,                          = 0             = 0
         0                           = 0             = 0
     }
+   
