@@ -1,20 +1,9 @@
 #include "../../cmathematics.h"
 
+#include "sha.h"
+
 #ifndef SHA2_H
 #define SHA2_H
-
-#define SHA224 224
-#define SHA256 256
-#define SHA384 384
-#define SHA512 512
-
-#define SHA224256_BLOCK_LEN 64
-#define SHA384512_BLOCK_LEN 128
-
-#define SHA224_OUT SHA224 >> 3
-#define SHA256_OUT SHA256 >> 3
-#define SHA384_OUT SHA384 >> 3
-#define SHA512_OUT SHA512 >> 3
 
 #define SHA224256_NR 64
 #define SHA384512_NR 80
@@ -36,7 +25,7 @@ typedef struct sha224256_context
 
     // state values
     int stateCursor;
-    unsigned char state[SHA224256_BLOCK_LEN];
+    unsigned char state[64];
 } sha224256_context;
 typedef sha224256_context sha224_context;
 typedef sha224256_context sha256_context;
@@ -51,6 +40,33 @@ void sha256_digest(sha256_context *ctx, unsigned char **out);
 
 void sha224256_update(sha224256_context *ctx, unsigned char *in, int n);
 void sha224256_digest(sha224256_context *ctx, unsigned char **out, int outLen);
-void sha224256_f(unsigned int h[8], unsigned char state[SHA224256_BLOCK_LEN]);
+void sha224256_f(unsigned int h[8], unsigned char state[64]);
+
+typedef struct sha384512_context
+{
+    int mode;
+    unsigned long long msgLen[2];
+
+    // buffer for the output
+    unsigned long long h[8];
+
+    // state values
+    int stateCursor;
+    unsigned char state[128];
+} sha384512_context;
+typedef sha384512_context sha384_context;
+typedef sha384512_context sha512_context;
+
+void sha384_initContext(sha384_context *ctx);
+void sha384_update(sha384_context *ctx, unsigned char *in, int n);
+void sha384_digest(sha384_context *ctx, unsigned char **out);
+
+void sha512_initContext(sha512_context *ctx);
+void sha512_update(sha512_context *ctx, unsigned char *in, int n);
+void sha512_digest(sha512_context *ctx, unsigned char **out);
+
+void sha384512_update(sha384512_context *ctx, unsigned char *in, int n);
+void sha384512_digest(sha384512_context *ctx, unsigned char **out, int outLen);
+void sha384512_f(unsigned long long h[8], unsigned char state[128]);
 
 #endif

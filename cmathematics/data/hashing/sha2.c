@@ -1,3 +1,4 @@
+#include "sha.h"
 #include "sha2.h"
 
 #include <stdio.h>
@@ -111,7 +112,7 @@ void sha224_update(sha224_context *ctx, unsigned char *in, int n)
 
 void sha224_digest(sha224_context *ctx, unsigned char **out)
 {
-    sha224256_digest(ctx, out, SHA224_OUT);
+    sha224256_digest(ctx, out, sha_retLen[SHA224]);
 }
 
 void sha256_initContext(sha256_context *ctx)
@@ -129,7 +130,7 @@ void sha256_update(sha256_context *ctx, unsigned char *in, int n)
 
 void sha256_digest(sha256_context *ctx, unsigned char **out)
 {
-    sha224256_digest(ctx, out, SHA256_OUT);
+    sha224256_digest(ctx, out, sha_retLen[SHA256]);
 }
 
 void sha224256_update(sha224256_context *ctx, unsigned char *in, int n)
@@ -139,7 +140,7 @@ void sha224256_update(sha224256_context *ctx, unsigned char *in, int n)
     while (msgCursor < n)
     {
         // determine if end of block or end of message comes first
-        int noBytesInBlock = MIN(SHA224256_BLOCK_LEN - ctx->stateCursor, n - msgCursor);
+        int noBytesInBlock = MIN(sha_blockLen[SHA256] - ctx->stateCursor, n - msgCursor);
 
         // copy bytes
         memcpy(ctx->state + ctx->stateCursor, in + msgCursor, noBytesInBlock);
@@ -148,7 +149,7 @@ void sha224256_update(sha224256_context *ctx, unsigned char *in, int n)
         msgCursor += noBytesInBlock;
         ctx->stateCursor += noBytesInBlock;
 
-        if (ctx->stateCursor == SHA224256_BLOCK_LEN)
+        if (ctx->stateCursor == sha_blockLen[SHA256])
         {
             // reached end of the block
 
@@ -170,10 +171,10 @@ void sha224256_digest(sha224256_context *ctx, unsigned char **out, int outLen)
     // first bit 1
     ctx->state[ctx->stateCursor++] = 0x80;
     // rest of bits to 0
-    memset(ctx->state + ctx->stateCursor, 0, MAX(SHA224256_BLOCK_LEN - ctx->stateCursor, 0));
+    memset(ctx->state + ctx->stateCursor, 0, MAX(sha_blockLen[SHA256] - ctx->stateCursor, 0));
 
     // output size
-    if (ctx->stateCursor >= (SHA224256_BLOCK_LEN - sizeof(unsigned long long)))
+    if (ctx->stateCursor >= (sha_blockLen[SHA256] - sizeof(unsigned long long)))
     {
         // need new block to write message length
 
@@ -182,11 +183,11 @@ void sha224256_digest(sha224256_context *ctx, unsigned char **out, int outLen)
 
         // reset state
         ctx->stateCursor = 0;
-        memset(ctx->state, 0, SHA224256_BLOCK_LEN);
+        memset(ctx->state, 0, sha_blockLen[SHA256]);
     }
     // set last 64 bits as length
     unsigned long long size = ctx->msgLen;
-    for (int i = SHA224256_BLOCK_LEN - 1; size; i--)
+    for (int i = sha_blockLen[SHA256] - 1; size; i--)
     {
         // set LSByte on rightmost slot
         ctx->state[i] = size; // gets LSByte of long long
@@ -210,25 +211,25 @@ void sha224256_digest(sha224256_context *ctx, unsigned char **out, int outLen)
     int noWords = outLen / sizeof(unsigned int);
     for (int i = 0; i < noWords; i++)
     {
-        for (int j = 3; j >= 0; j--)
+        for (int j = sizeof(unsigned int) - 1; j >= 0; j--)
         {
             // get LSByte on right side
-            (*out)[i * 4 + j] = ctx->h[i];
+            (*out)[i * sizeof(unsigned int) + j] = ctx->h[i];
             ctx->h[i] >>= 8; // remove LSByte
         }
     }
 }
 
-void sha224256_f(unsigned int h[8], unsigned char state[SHA224256_BLOCK_LEN])
+void sha224256_f(unsigned int h[8], unsigned char state[64])
 {
     // initialize W
     unsigned int W[16];
     for (int i = 0; i < 16; i++)
     {
-        for (int j = 0; j < 4; j++)
+        for (int j = 0; j < sizeof(unsigned int); j++)
         {
             W[i] <<= 8;               // increase magnitude by 1 byte
-            W[i] |= state[i * 4 + j]; // copy in byte
+            W[i] |= state[i * sizeof(unsigned int) + j]; // copy in byte
         }
         //printf("W[%2d] = %08lx\n", i, W[i]);
     }
@@ -263,6 +264,212 @@ void sha224256_f(unsigned int h[8], unsigned char state[SHA224256_BLOCK_LEN])
         unsigned int S0 = rightRotateI(h2[0], 2) ^ rightRotateI(h2[0], 13) ^ rightRotateI(h2[0], 22);
         unsigned int maj = (h2[0] & h2[1]) ^ (h2[0] & h2[2]) ^ (h2[1] & h2[2]);
         unsigned int tmp2 = S0 + maj;
+
+        for (int i = 7; i > 0; i--)
+        {
+            h2[i] = h2[i - 1];
+        }
+        h2[4] += tmp1;
+        h2[0] = tmp1 + tmp2;
+    }
+
+    // update buffer values
+    for (int i = 0; i < 8; i++)
+    {
+        h[i] += h2[i];
+    }
+}
+
+void sha384_initContext(sha384_context *ctx)
+{
+    ctx->mode = SHA384;
+    ctx->msgLen[0] = 0ULL;
+    ctx->msgLen[1] = 0ULL;
+    memcpy(ctx->h, sha384_h, 8 * sizeof(unsigned long long));
+    ctx->stateCursor = 0;
+}
+
+void sha384_update(sha384_context *ctx, unsigned char *in, int n)
+{
+    sha384512_update(ctx, in, n);
+}
+
+void sha384_digest(sha384_context *ctx, unsigned char **out)
+{
+    sha384512_digest(ctx, out, sha_retLen[SHA384]);
+}
+
+void sha512_initContext(sha512_context *ctx)
+{
+    ctx->mode = SHA512;
+    ctx->msgLen[0] = 0ULL;
+    ctx->msgLen[1] = 0ULL;
+    memcpy(ctx->h, sha512_h, 8 * sizeof(unsigned long long));
+    ctx->stateCursor = 0;
+}
+
+void sha512_update(sha512_context *ctx, unsigned char *in, int n)
+{
+    sha384512_update(ctx, in, n);
+}
+
+void sha512_digest(sha512_context *ctx, unsigned char **out)
+{
+    sha384512_digest(ctx, out, sha_retLen[SHA512]);
+}
+
+void sha384512_update(sha384512_context *ctx, unsigned char *in, int n)
+{
+    int msgCursor = 0;
+
+    while (msgCursor < n)
+    {
+        // determine if end of block or end of message comes first
+        int noBytesInBlock = MIN(sha_blockLen[SHA512] - ctx->stateCursor, n - msgCursor);
+
+        // copy bytes
+        memcpy(ctx->state + ctx->stateCursor, in + msgCursor, noBytesInBlock);
+
+        // advance cursors
+        msgCursor += noBytesInBlock;
+        ctx->stateCursor += noBytesInBlock;
+
+        if (ctx->stateCursor == sha_blockLen[SHA512])
+        {
+            // reached end of the block
+
+            // call the function
+            sha384512_f(ctx->h, ctx->state);
+
+            // reset state
+            ctx->stateCursor = 0;
+        }
+    }
+
+    // add length in bits
+    unsigned long long carry = n << 3; // => bits
+    unsigned long long nextCarry = 0ULL; // => extra
+    for (int i = 0; i < 2; i++)
+    {
+        if (carry)
+        {
+            unsigned long long initial = ctx->msgLen[i];
+            ctx->msgLen[i] += carry;
+            carry = 0ULL;
+            if (ctx->msgLen[i] < initial)
+            {
+                carry = 1ULL;
+            }
+        }
+
+        carry += nextCarry;
+        nextCarry = 0ULL;
+    }
+}
+
+void sha384512_digest(sha384512_context *ctx, unsigned char **out, int outLen)
+{
+    // PADDING
+
+    // first bit 1
+    ctx->state[ctx->stateCursor++] = 0x80;
+    // rest of bits to 0
+    memset(ctx->state + ctx->stateCursor, 0, MAX(sha_blockLen[SHA512] - ctx->stateCursor, 0));
+
+    // output size
+    if (ctx->stateCursor >= (sha_blockLen[SHA512] - 2 * sizeof(unsigned long long)))
+    {
+        // need new block to write message length
+
+        // call function on complete block
+        sha384512_f(ctx->h, ctx->state);
+
+        // reset state
+        ctx->stateCursor = 0;
+        memset(ctx->state, 0, sha_blockLen[SHA512]);
+    }
+    // set last 128 bits as length
+    unsigned long long size[2] = { ctx->msgLen[0], ctx->msgLen[1] };
+    for (int i = sha_blockLen[SHA512] - 1, sizeIdx = 0, byteCounter = 0; byteCounter < 16; i--, byteCounter++)
+    {
+        // set LSByte on rightmost slot
+        ctx->state[i] = size[sizeIdx]; // gets LSByte of long long
+        size[sizeIdx] >>= 8;           // remove LSByte
+        if (i == sha_blockLen[SHA512] - sizeof(unsigned long long))
+        {
+            sizeIdx++;
+        }
+    }
+
+    // call function on the last block
+    sha384512_f(ctx->h, ctx->state);
+
+    // reset state
+    ctx->stateCursor = 0;
+
+    // output is the array ctx->h
+    *out = malloc(outLen * sizeof(unsigned char));
+    if (!(*out))
+    {
+        // ensure memory was allocated
+        return;
+    }
+
+    int noWords = outLen / sizeof(unsigned long long);
+    for (int i = 0; i < noWords; i++)
+    {
+        for (int j = sizeof(unsigned long long) - 1; j >= 0; j--)
+        {
+            // get LSByte on right side
+            (*out)[i * sizeof(unsigned long long) + j] = ctx->h[i];
+            ctx->h[i] >>= 8; // remove LSByte
+        }
+    }
+}
+
+void sha384512_f(unsigned long long h[8], unsigned char state[128])
+{
+    // initialize W
+    unsigned long long W[16];
+    for (int i = 0; i < 16; i++)
+    {
+        for (int j = 0; j < sizeof(unsigned long long); j++)
+        {
+            W[i] <<= 8;               // increase magnitude by 1 byte
+            W[i] |= state[i * sizeof(unsigned long long) + j]; // copy in byte
+        }
+    }
+
+    // initialize working variables
+    unsigned long long h2[8];
+    memcpy(h2, h, 8 * sizeof(unsigned long long));
+
+    // go through rounds
+    for (int t = 0; t < SHA384512_NR; t++)
+    {
+        int s = t & 0xf; // mod 16
+
+        if (t >= 16)
+        {
+            // calculate new word
+            unsigned long long val_s0 = W[(s - 15) & 0xf];
+            unsigned long long val_s1 = W[(s - 2) & 0xf];
+
+            unsigned long long s0 = rightRotateLL(val_s0, 1) ^ rightRotateLL(val_s0, 8) ^ (val_s0 >> 7);
+            unsigned long long s1 = rightRotateLL(val_s1, 19) ^ rightRotateLL(val_s1, 61) ^ (val_s1 >> 6);
+
+            // sigma_1(W_t-2) + W_t-7 + sigma_0(W_t-15) + W_t-16
+            W[s] = W[s] + s0 + W[(s - 7) & 0xf] + s1;
+        }
+
+        // t1 = h + sum_1(e) + Ch(e, f, g) + K_t + W_t
+		// t2 = sum_0(a) + Maj(a, b, c)
+        unsigned long long S1 = rightRotateLL(h2[4], 14) ^ rightRotateLL(h2[4], 18) ^ rightRotateLL(h2[4], 41);
+        unsigned long long ch = (h2[4] & h2[5]) ^ (~h2[4] & h2[6]);
+        unsigned long long tmp1 = h2[7] + S1 + ch + sha384512_k[t] + W[s];
+        unsigned long long S0 = rightRotateLL(h2[0], 28) ^ rightRotateLL(h2[0], 34) ^ rightRotateLL(h2[0], 39);
+        unsigned long long maj = (h2[0] & h2[1]) ^ (h2[0] & h2[2]) ^ (h2[1] & h2[2]);
+        unsigned long long tmp2 = S0 + maj;
 
         for (int i = 7; i > 0; i--)
         {

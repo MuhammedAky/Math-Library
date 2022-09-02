@@ -16,7 +16,7 @@ int main() {
     char *sub_str = bigint_toString(sub);
     bigint mult = bigint_multiply(i1, i2);
     char *mult_str = bigint_toString(mult);
-    
+
     printf("i1       = (%d) %s\n", i1.noDigits, i1_str);
     printf("i2       = (%d) %s\n", i2.noDigits, i2_str);
     printf("i1 + i2  = (%d) %s\n", add.noDigits, add_str);
