@@ -1,56 +1,85 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "../cmathematics/cmathematics.h"
-#include "../cmathematics/aes.h"
-
-char hex[16] = "0123456789ABCDEF";
-void printCharArr(unsigned char *arr, int len, bool asChar)
-{
-    printf("{ ");
-    for (int i = 0; i < len; i++)
-    {
-        printf("%c%c ", hex[arr[i] >> 4], hex[arr[i] & 0x0f]);
-    }
-    printf("}\n");
-}
+#include "../cmathematics/data/hashing/sha1.h"
+#include "../cmathematics/data/hashing/sha2.h"
+#include "../cmathematics/data/hashing/sha3.h"
 
 int main()
 {
     printf("Hello, world!\n");
 
-    int N = 27;
-    unsigned char *txt = "asidlhgfyiuyguaysdgdcvetwee";
-    unsigned char *key = "abcdefghijklmnop";
-    unsigned char *iv = "zyxwvutsrqponmlk";
-    unsigned char *cipher[3] = {NULL, NULL, NULL};
-    unsigned char *dec[3] = {NULL, NULL, NULL};
-    unsigned char *names[3] = {"AES-ECB", "AES-CBC", "AES-CTR"};
+    unsigned char *msg = NULL;
+    unsigned char *hash = NULL;
+    unsigned char *out = NULL;
 
-    for (int i = 0; i < 3; i++)
+    // SHA-1
+    msg = malloc(100 * sizeof(unsigned char));
+    memset(msg, 'a', 100 * sizeof(unsigned char));
+    sha1_context ctx1;
+    sha1_initContext(&ctx1);
+    for (int i = 0; i < 10000; i++)
     {
-        int encryptedLen = aes_encrypt(txt, N, key, AES_128, i, iv, cipher + i);
-        int decryptedLen = aes_decrypt(cipher[i], encryptedLen, key, AES_128, i, iv, dec + i);
-
-        printf("\n\n=================%s=================\n", names[i]);
-        printf("Plaintext: ");
-        printCharArr(txt, N, false);
-        printf("Key:       ");
-        printCharArr(key, 16, false);
-        printf("Cipher:    ");
-        printCharArr(cipher[i], encryptedLen, false);
-        printf("Decrypted: ");
-        printCharArr(dec[i], decryptedLen, false);
-
-        free(cipher[i]);
-        free(dec[i]);
+        sha1_update(&ctx1, msg, 100);
     }
+    sha1_digest(&ctx1, &hash);
 
-    // aes_mixCols(aes_inv_mixColMat); // gives identity matrix
+    out = printByteArr(hash, SHA1_OUT, NULL, 0, 0);
+    printf("SHA1: %s\n", out);
+    free(out);
 
-    free(txt);
-    free(key);
-    free(iv);
+    free(msg);
+    free(hash);
+
+    // SHA-224
+    msg = "The quick brown fox jumps over the lazy dog";
+    sha224_context ctx224;
+    sha224_initContext(&ctx224);
+    sha224_update(&ctx224, msg, 43);
+    sha224_digest(&ctx224, &hash);
+
+    out = printByteArr(hash, SHA224_OUT, NULL, 0, 0);
+    printf("SHA224: %s\n", out);
+    free(out);
+    free(msg);
+    free(hash);
+
+    // SHA-256
+    msg = "abc";
+    sha256_context ctx256;
+    sha256_initContext(&ctx256);
+    sha256_update(&ctx256, msg, 3);
+    sha256_digest(&ctx256, &hash);
+
+    out = printByteArr(hash, SHA256_OUT, NULL, 0, 0);
+    printf("SHA256: %s\n", out);
+    free(out);
+    free(msg);
+    free(hash);
+
+    // SHA-3
+    int N = 176;
+    msg = scanHex("1F42ADD25C0A80A4C82AAE3A0E302ABF9261DCA7E7884FD869D96ED4CE88AAAA25304D2D79E1FA5CC1FA2C95899229BC87431AD06DA524F2140E70BD0536E9685EE78089590A012384709182357091283479AB93489182CD7397F12B261DCA7E7884FD869D96ED4CE88A261DCA7E7884FD869D96ED4CE88A261DCA7E7884FD869D96ED4CE88A261DCA7E7884FD869D96ED4CE88A261DCA7E7884FD869D96ED4CE88A261DCA7E7884FD869D96ED4CE88A", N);
+    if (msg)
+    {
+        sha3_context ctx3;
+        sha3_initContext(&ctx3, SHA3_256);
+        sha3_update(&ctx3, msg, N);
+        sha3_digest(&ctx3, &hash);
+        out = printByteArr(hash, ctx3.ret_len, NULL, 0, 0);
+        printf("SHA3-256: %s\n", out);
+        free(out);
+        free(hash);
+    }
+    else
+    {
+        printf("Invalid string\n");
+    }
+    free(msg);
+
+    
 
     return 0;
 }
